@@ -1,0 +1,871 @@
+# ./acme_dns_manual_nginx_swap.sh
+
+INPUT: enter domain name (e.g., example.com): eagles.edu.vn
+INFO  [2025-12-17 00:52:42 +0700] Logging to: /var/log/acme-dns-manual-eagles.edu.vn-2025-12-17-005242.log
+INFO  [2025-12-17 00:52:42 +0700] stdout - verify default CA is Let's Encrypt
+INFO  [2025-12-17 00:52:42 +0700] RUN: /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+[Wed Dec 17 12:52:43 AM +07 2025] Changed default CA to: https://acme-v02.api.letsencrypt.org/directory
+INFO  [2025-12-17 00:52:43 +0700] stdout - acme.sh --list
+INFO  [2025-12-17 00:52:43 +0700] RUN: /root/.acme.sh/acme.sh --list
+Main_Domain            KeyLength  SAN_Domains                CA                    Created               Renew
+anhngu.eagles.edu.vn   "ec-256"   www.anhngu.eagles.edu.vn   LetsEncrypt.org       2025-09-07T08:52:06Z  2025-11-05T08:52:06Z
+anhngu.eaglesvn.com    "ec-256"   www.anhngu.eaglesvn.com    LetsEncrypt.org       2025-09-07T21:01:47Z  2025-11-05T21:01:47Z
+eagles.edu.vn          "ec-256"   no                         LetsEncrypt.org_test
+eaglesvn.com           "ec-256"   www.eaglesvn.com           LetsEncrypt.org       2025-09-07T18:53:15Z  2025-11-05T18:53:15Z
+eagles.vn              "ec-256"   www.eagles.vn              LetsEncrypt.org       2025-12-16T09:13:19Z  2026-02-13T09:13:19Z
+eaglesvn.online        "ec-256"   www.eaglesvn.online        LetsEncrypt.org       2025-12-16T09:58:55Z  2026-02-13T09:58:55Z
+gptpatient.com         "ec-256"   www.gptpatient.com         LetsEncrypt.org       2025-06-06T17:34:07Z  2025-08-04T17:34:07Z
+obgyn.gptpatient.com   "ec-256"   www.obgyn.gptpatient.com   LetsEncrypt.org       2025-06-07T06:27:18Z  2025-08-05T06:27:18Z
+thuvien.eagles.edu.vn  "ec-256"   www.thuvien.eagles.edu.vn  LetsEncrypt.org       2025-09-07T16:04:28Z  2025-11-05T16:04:28Z
+thuvien.eaglesvn.com   "ec-256"   www.thuvien.eaglesvn.com   LetsEncrypt.org       2025-09-07T21:25:50Z  2025-11-05T21:25:50Z
+INFO  [2025-12-17 00:52:43 +0700] stdout - acme.sh --info (best-effort; may be empty if not issued yet)
+INFO  [2025-12-17 00:52:43 +0700] RUN: /root/.acme.sh/acme.sh --info -d eagles.edu.vn --ecc
+DOMAIN_CONF=/root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.conf
+Le_Domain=eagles.edu.vn
+Le_Alt=no
+Le_Webroot=/usr/local/lsws/Example/html
+Le_PreHook=
+Le_PostHook=
+Le_RenewHook=
+Le_API=https://acme-staging-v02.api.letsencrypt.org/directory
+Le_Keylength=ec-256
+Le_OrderFinalize=https://acme-staging-v02.api.letsencrypt.org/acme/finalize/186078904/29590812563
+INFO  [2025-12-17 00:52:43 +0700] SAN note: acme.sh stores the SAN entry for www.eagles.edu.vn inside the same config dir as eagles.edu.vn (usually /root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.conf). A separate www.* conf directory is not created.
+INFO  [2025-12-17 00:52:43 +0700] Detected production enabled entry: /etc/nginx/sites-enabled/eagles.edu.vn.conf
+INFO  [2025-12-17 00:52:43 +0700] Staged SSL conf to enable: /etc/nginx/sites-available/ssl_conf_repo/eagles.edu.vn_ssl.conf
+INFO  [2025-12-17 00:52:43 +0700] Staged symlink path will be: /etc/nginx/sites-enabled/eagles.edu.vn.conf
+INFO  [2025-12-17 00:52:43 +0700] stdout - move production entry to temp: /etc/nginx/temp_production_symlink
+INFO  [2025-12-17 00:52:43 +0700] RUN: mv -f /etc/nginx/sites-enabled/eagles.edu.vn.conf /etc/nginx/temp_production_symlink/eagles.edu.vn.conf
+INFO  [2025-12-17 00:52:43 +0700] stdout - create symlink for staged ssl conf in sites-enabled
+INFO  [2025-12-17 00:52:43 +0700] RUN: ln -sfn /etc/nginx/sites-available/ssl_conf_repo/eagles.edu.vn_ssl.conf /etc/nginx/sites-enabled/eagles.edu.vn.conf
+INFO  [2025-12-17 00:52:43 +0700] stdout - nginx status + test + reload
+INFO  [2025-12-17 00:52:43 +0700] RUN: systemctl status nginx --no-pager
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2025-12-15 15:06:45 +07; 1 day 9h ago
+       Docs: man:nginx(8)
+    Process: 839421 ExecReload=/usr/sbin/nginx -g daemon on; master_process on; -s reload (code=exited, status=0/SUCCESS)
+   Main PID: 914 (nginx)
+      Tasks: 8 (limit: 14209)
+     Memory: 41.2M
+        CPU: 24.803s
+     CGroup: /system.slice/nginx.service
+             ├─   914 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─839429 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839431 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839432 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839433 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839434 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839435 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             └─839436 "nginx: cache manager process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+
+Dec 16 16:13:44 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:13:44 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:13:44 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:13:44 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:51:02 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:51:02 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:59:16 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:59:16 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:59:16 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:59:16 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+INFO  [2025-12-17 00:52:43 +0700] RUN: nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+INFO  [2025-12-17 00:52:43 +0700] RUN: systemctl reload nginx
+INFO  [2025-12-17 00:52:43 +0700] RUN: systemctl status nginx --no-pager
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2025-12-15 15:06:45 +07; 1 day 9h ago
+       Docs: man:nginx(8)
+    Process: 31665 ExecReload=/usr/sbin/nginx -g daemon on; master_process on; -s reload (code=exited, status=0/SUCCESS)
+   Main PID: 914 (nginx)
+      Tasks: 8 (limit: 14209)
+     Memory: 42.1M
+        CPU: 24.860s
+     CGroup: /system.slice/nginx.service
+             ├─   914 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─839429 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839431 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839432 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839433 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839434 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─839435 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             └─839436 "nginx: cache manager process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+
+Dec 16 16:13:44 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:13:44 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:51:02 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:51:02 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:59:16 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:59:16 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 16 16:59:16 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 16 16:59:16 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+Dec 17 00:52:43 cloud systemd[1]: Reloading A high performance web server and a reverse proxy server...
+Dec 17 00:52:43 cloud systemd[1]: Reloaded A high performance web server and a reverse proxy server.
+
+INFO  [2025-12-17 00:52:43 +0700] Checkpoint: Nginx staging swap is active.
+PROMPT: Report SUCCESS so far and proceed to acme issue/renew for 'eagles.edu.vn' and 'www.eagles.edu.vn'? [y/n]: y
+
+ACTION: Prepare to add TWO DNS TXT records in your DNS provider when prompted by acme.sh. Ensure you can edit the zone now.  (press Enter to continue)
+INFO  [2025-12-17 00:53:04 +0700] stdout - backup ECC cert entry
+INFO  [2025-12-17 00:53:04 +0700] RUN: cp -a /root/.acme.sh/eagles.edu.vn_ecc /root/.acme.sh/eagles.edu.vn_ecc.bak.2025-12-17-005304
+INFO  [2025-12-17 00:53:04 +0700] stdout - remove ECC cert entry cleanly (acme.sh --remove), then filesystem cleanup
+INFO  [2025-12-17 00:53:04 +0700] RUN: /root/.acme.sh/acme.sh --remove -d eagles.edu.vn --ecc
+[Wed Dec 17 12:53:04 AM +07 2025] eagles.edu.vn has been removed. The key and cert files are in /root/.acme.sh/eagles.edu.vn_ecc
+[Wed Dec 17 12:53:04 AM +07 2025] You can remove them by yourself.
+INFO  [2025-12-17 00:53:04 +0700] RUN: rm -rf /root/.acme.sh/eagles.edu.vn_ecc
+INFO  [2025-12-17 00:53:04 +0700] stdout - run acme.sh --issue (manual DNS). This will print required TXT records.
+[Wed Dec 17 12:53:04 AM +07 2025] Let's find the script directory.
+[Wed Dec 17 12:53:04 AM +07 2025] _SCRIPT_='/root/.acme.sh/acme.sh'
+[Wed Dec 17 12:53:04 AM +07 2025] _script='/root/.acme.sh/acme.sh'
+[Wed Dec 17 12:53:04 AM +07 2025] _script_home='/root/.acme.sh'
+[Wed Dec 17 12:53:04 AM +07 2025] Using default home: /root/.acme.sh
+[Wed Dec 17 12:53:04 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:53:05 AM +07 2025] LE_WORKING_DIR='/root/.acme.sh'
+https://github.com/acmesh-official/acme.sh
+v3.1.2
+[Wed Dec 17 12:53:05 AM +07 2025] Running cmd: issue
+[Wed Dec 17 12:53:05 AM +07 2025] _main_domain='eagles.edu.vn'
+[Wed Dec 17 12:53:05 AM +07 2025] _alt_domains='www.eagles.edu.vn'
+[Wed Dec 17 12:53:05 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:53:05 AM +07 2025] default_acme_server='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:53:05 AM +07 2025] ACME_DIRECTORY='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:53:05 AM +07 2025] _ACME_SERVER_HOST='acme-v02.api.letsencrypt.org'
+[Wed Dec 17 12:53:05 AM +07 2025] _ACME_SERVER_PATH='directory'
+[Wed Dec 17 12:53:05 AM +07 2025] DOMAIN_PATH='/root/.acme.sh/eagles.edu.vn_ecc'
+[Wed Dec 17 12:53:05 AM +07 2025] 'dns' contains 'dns'
+[Wed Dec 17 12:53:05 AM +07 2025] Using ACME_DIRECTORY: https://acme-v02.api.letsencrypt.org/directory
+[Wed Dec 17 12:53:05 AM +07 2025] _init API for server: https://acme-v02.api.letsencrypt.org/directory
+[Wed Dec 17 12:53:05 AM +07 2025] GET
+[Wed Dec 17 12:53:05 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:53:05 AM +07 2025] timeout=10
+[Wed Dec 17 12:53:05 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.oq1DbsZCzX  -g  --connect-timeout 10'
+[Wed Dec 17 12:53:06 AM +07 2025] ret='0'
+[Wed Dec 17 12:53:06 AM +07 2025] response='{
+  "AfoubJnhPSM": "https://community.letsencrypt.org/t/adding-random-entries-to-the-directory/33417",
+  "keyChange": "https://acme-v02.api.letsencrypt.org/acme/key-change",
+  "meta": {
+    "caaIdentities": [
+      "letsencrypt.org"
+    ],
+    "profiles": {
+      "classic": "https://letsencrypt.org/docs/profiles#classic",
+      "shortlived": "https://letsencrypt.org/docs/profiles#shortlived (not yet generally available)",
+      "tlsclient": "https://letsencrypt.org/docs/profiles#tlsclient",
+      "tlsserver": "https://letsencrypt.org/docs/profiles#tlsserver"
+    },
+    "termsOfService": "https://letsencrypt.org/documents/LE-SA-v1.6-August-18-2025.pdf",
+    "website": "https://letsencrypt.org"
+  },
+  "newAccount": "https://acme-v02.api.letsencrypt.org/acme/new-acct",
+  "newNonce": "https://acme-v02.api.letsencrypt.org/acme/new-nonce",
+  "newOrder": "https://acme-v02.api.letsencrypt.org/acme/new-order",
+  "renewalInfo": "https://acme-v02.api.letsencrypt.org/acme/renewal-info",
+  "revokeCert": "https://acme-v02.api.letsencrypt.org/acme/revoke-cert"
+}'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_KEY_CHANGE='https://acme-v02.api.letsencrypt.org/acme/key-change'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_NEW_AUTHZ
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_NEW_ORDER='https://acme-v02.api.letsencrypt.org/acme/new-order'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_NEW_ACCOUNT='https://acme-v02.api.letsencrypt.org/acme/new-acct'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_REVOKE_CERT='https://acme-v02.api.letsencrypt.org/acme/revoke-cert'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_AGREEMENT='https://letsencrypt.org/documents/LE-SA-v1.6-August-18-2025.pdf'
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_NEW_NONCE='https://acme-v02.api.letsencrypt.org/acme/new-nonce'
+[Wed Dec 17 12:53:06 AM +07 2025] Using CA: https://acme-v02.api.letsencrypt.org/directory
+[Wed Dec 17 12:53:06 AM +07 2025] _on_before_issue
+[Wed Dec 17 12:53:06 AM +07 2025] _chk_main_domain='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _chk_alt_domains='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] 'dns' does not contain 'no'
+[Wed Dec 17 12:53:06 AM +07 2025] Le_LocalAddress
+[Wed Dec 17 12:53:06 AM +07 2025] d='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] Checking for domain='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _currentRoot='dns'
+[Wed Dec 17 12:53:06 AM +07 2025] d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] Checking for domain='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _currentRoot='dns'
+[Wed Dec 17 12:53:06 AM +07 2025] d
+[Wed Dec 17 12:53:06 AM +07 2025] 'dns' does not contain 'apache'
+[Wed Dec 17 12:53:06 AM +07 2025] _saved_account_key_hash='4YnoxRCGja/LEWCGkvxDUAWzLZ0nczVUCusqVPtgRcA='
+[Wed Dec 17 12:53:06 AM +07 2025] _saved_account_key_hash was not changed, skipping account registration.
+[Wed Dec 17 12:53:06 AM +07 2025] Read key length: 2048
+[Wed Dec 17 12:53:06 AM +07 2025] Creating domain key
+[Wed Dec 17 12:53:06 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:53:06 AM +07 2025] ACME_DIRECTORY='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:53:06 AM +07 2025] _ACME_SERVER_HOST='acme-v02.api.letsencrypt.org'
+[Wed Dec 17 12:53:06 AM +07 2025] _ACME_SERVER_PATH='directory'
+[Wed Dec 17 12:53:06 AM +07 2025] _createkey for file:/root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.key
+[Wed Dec 17 12:53:06 AM +07 2025] Using length 256
+[Wed Dec 17 12:53:06 AM +07 2025] Using EC name: prime256v1
+[Wed Dec 17 12:53:06 AM +07 2025] The domain key is here: /root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.key
+[Wed Dec 17 12:53:06 AM +07 2025] _createcsr
+[Wed Dec 17 12:53:06 AM +07 2025] domain='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] domainlist='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] csrkey='/root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.key'
+[Wed Dec 17 12:53:06 AM +07 2025] csr='/root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.csr'
+[Wed Dec 17 12:53:06 AM +07 2025] csrconf='/root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.csr.conf'
+[Wed Dec 17 12:53:06 AM +07 2025] _is_idn_d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:06 AM +07 2025] domainlist='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] seg='eagles'
+[Wed Dec 17 12:53:06 AM +07 2025] _is_idn_d='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:06 AM +07 2025] seg='www'
+[Wed Dec 17 12:53:06 AM +07 2025] Multi domain='DNS:eagles.edu.vn,DNS:www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _is_idn_d='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:06 AM +07 2025] _csr_cn='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] seg='eagles'
+[Wed Dec 17 12:53:06 AM +07 2025] Getting domain auth token for each domain
+[Wed Dec 17 12:53:06 AM +07 2025] seg='eagles'
+[Wed Dec 17 12:53:06 AM +07 2025] _is_idn_d='eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:06 AM +07 2025] d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] seg='www'
+[Wed Dec 17 12:53:06 AM +07 2025] _is_idn_d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:06 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:06 AM +07 2025] d
+[Wed Dec 17 12:53:06 AM +07 2025] _identifiers='{"type":"dns","value":"eagles.edu.vn"},{"type":"dns","value":"www.eagles.edu.vn"}'
+[Wed Dec 17 12:53:06 AM +07 2025] _notBefore
+[Wed Dec 17 12:53:06 AM +07 2025] _notAfter
+[Wed Dec 17 12:53:06 AM +07 2025] STEP 1, Ordering a Certificate
+[Wed Dec 17 12:53:06 AM +07 2025] =======Sending Signed Request=======
+[Wed Dec 17 12:53:06 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/acme/new-order'
+[Wed Dec 17 12:53:06 AM +07 2025] payload='{"identifiers": [{"type":"dns","value":"eagles.edu.vn"},{"type":"dns","value":"www.eagles.edu.vn"}]}'
+[Wed Dec 17 12:53:06 AM +07 2025] EC key
+[Wed Dec 17 12:53:06 AM +07 2025] Get nonce with HEAD. ACME_NEW_NONCE='https://acme-v02.api.letsencrypt.org/acme/new-nonce'
+[Wed Dec 17 12:53:06 AM +07 2025] HEAD
+[Wed Dec 17 12:53:06 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/new-nonce'
+[Wed Dec 17 12:53:06 AM +07 2025] body
+[Wed Dec 17 12:53:06 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:06 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g  -I  '
+[Wed Dec 17 12:53:07 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:07 AM +07 2025] _headers='HTTP/2 200
+server: nginx
+date: Tue, 16 Dec 2025 17:53:07 GMT
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+replay-nonce: hSQhSvkiqUz1VGbHpxBWiAKxcy9uFD6NkcRbbO1U4tnzeOp853A
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:07 AM +07 2025] nonce='hSQhSvkiqUz1VGbHpxBWiAKxcy9uFD6NkcRbbO1U4tnzeOp853A'
+[Wed Dec 17 12:53:07 AM +07 2025] POST
+[Wed Dec 17 12:53:07 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/new-order'
+[Wed Dec 17 12:53:07 AM +07 2025] body='{"protected": "eyJub25jZSI6ICJoU1FoU3ZraXFVejFWR2JIcHhCV2lBS3hjeTl1RkQ2TmtjUmJiTzFVNHRuemVPcDg1M0EiLCAidXJsIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL25ldy1vcmRlciIsICJhbGciOiAiRVMyNTYiLCAia2lkIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL2FjY3QvMjI0MjA2MjgwNSJ9", "payload": "eyJpZGVudGlmaWVycyI6IFt7InR5cGUiOiJkbnMiLCJ2YWx1ZSI6ImVhZ2xlcy5lZHUudm4ifSx7InR5cGUiOiJkbnMiLCJ2YWx1ZSI6Ind3dy5lYWdsZXMuZWR1LnZuIn1dfQ", "signature": "LB5C2YAhxZ2pUwLSjcsXQcqIBlOL8CgXRnk95GXHibN6mRRwP9kwrr_3-ehVmMOOq3wyqKRzOhQNmGZrhZeXmg"}'
+[Wed Dec 17 12:53:07 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:07 AM +07 2025] Http already initialized.
+[Wed Dec 17 12:53:07 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g '
+[Wed Dec 17 12:53:08 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:08 AM +07 2025] responseHeaders='HTTP/2 201
+server: nginx
+date: Tue, 16 Dec 2025 17:53:08 GMT
+content-type: application/json
+content-length: 493
+boulder-requester: 2242062805
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+location: https://acme-v02.api.letsencrypt.org/acme/order/2242062805/459480645326
+replay-nonce: hSQhSvkiqjqoJQvgd74FJtjmjPPSwCGkT_srZiMVDtFNhc4vWa4
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:08 AM +07 2025] code='201'
+[Wed Dec 17 12:53:08 AM +07 2025] original='{
+  "status": "ready",
+  "expires": "2025-12-23T17:53:08Z",
+  "identifiers": [
+    {
+      "type": "dns",
+      "value": "eagles.edu.vn"
+    },
+    {
+      "type": "dns",
+      "value": "www.eagles.edu.vn"
+    }
+  ],
+  "authorizations": [
+    "https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776",
+    "https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866"
+  ],
+  "finalize": "https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326"
+}'
+[Wed Dec 17 12:53:08 AM +07 2025] response='{"status":"ready","expires":"2025-12-23T17:53:08Z","identifiers":[{"type":"dns","value":"eagles.edu.vn"},{"type":"dns","value":"www.eagles.edu.vn"}],"authorizations":["https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776","https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866"],"finalize":"https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326"}'
+[Wed Dec 17 12:53:08 AM +07 2025] Le_LinkOrder='https://acme-v02.api.letsencrypt.org/acme/order/2242062805/459480645326'
+[Wed Dec 17 12:53:08 AM +07 2025] Le_OrderFinalize='https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326'
+[Wed Dec 17 12:53:08 AM +07 2025] _authorizations_seg='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776,https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:08 AM +07 2025] STEP 2, Get the authorizations of each domain
+[Wed Dec 17 12:53:08 AM +07 2025] _authz_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:08 AM +07 2025] =======Sending Signed Request=======
+[Wed Dec 17 12:53:08 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:08 AM +07 2025] payload
+[Wed Dec 17 12:53:08 AM +07 2025] Use cached jwk for file: /root/.acme.sh/ca/acme-v02.api.letsencrypt.org/directory/account.key
+[Wed Dec 17 12:53:08 AM +07 2025] Use _CACHED_NONCE='hSQhSvkiqjqoJQvgd74FJtjmjPPSwCGkT_srZiMVDtFNhc4vWa4'
+[Wed Dec 17 12:53:08 AM +07 2025] nonce='hSQhSvkiqjqoJQvgd74FJtjmjPPSwCGkT_srZiMVDtFNhc4vWa4'
+[Wed Dec 17 12:53:08 AM +07 2025] POST
+[Wed Dec 17 12:53:08 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:08 AM +07 2025] body='{"protected": "eyJub25jZSI6ICJoU1FoU3ZraXFqcW9KUXZnZDc0Rkp0am1qUFBTd0NHa1Rfc3JaaU1WRHRGTmhjNHZXYTQiLCAidXJsIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL2F1dGh6LzIyNDIwNjI4MDUvNjI0NDU2Nzg2Nzc2IiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiaHR0cHM6Ly9hY21lLXYwMi5hcGkubGV0c2VuY3J5cHQub3JnL2FjbWUvYWNjdC8yMjQyMDYyODA1In0", "payload": "", "signature": "pzfPPNfDVWtF642-DsM9iTEdGD4TuBjF6J5lOsnfOexyzWQYpuYkSl0d9EPkiefVpZ8bt5hLmOtk6g5p_YeZiw"}'
+[Wed Dec 17 12:53:08 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:08 AM +07 2025] Http already initialized.
+[Wed Dec 17 12:53:08 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g '
+[Wed Dec 17 12:53:09 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:09 AM +07 2025] responseHeaders='HTTP/2 200
+server: nginx
+date: Tue, 16 Dec 2025 17:53:09 GMT
+content-type: application/json
+content-length: 538
+boulder-requester: 2242062805
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+replay-nonce: hSQhSvkiAHYxEP7FKbIoGq9vZRSA2q54OpSb830a-O3WLSn9syI
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:09 AM +07 2025] code='200'
+[Wed Dec 17 12:53:09 AM +07 2025] original='{
+  "identifier": {
+    "type": "dns",
+    "value": "eagles.edu.vn"
+  },
+  "status": "valid",
+  "expires": "2026-01-07T10:46:49Z",
+  "challenges": [
+    {
+      "type": "dns-01",
+      "url": "https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w",
+      "status": "valid",
+      "validated": "2025-12-08T10:46:46Z",
+      "token": "582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk",
+      "validationRecord": [
+        {
+          "hostname": "eagles.edu.vn",
+          "addressUsed": ""
+        }
+      ]
+    }
+  ]
+}'
+[Wed Dec 17 12:53:09 AM +07 2025] response='{"identifier":{"type":"dns","value":"eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:49Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""}]}]}'
+[Wed Dec 17 12:53:09 AM +07 2025] response='{"identifier":{"type":"dns","value":"eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:49Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""}]}]}'
+[Wed Dec 17 12:53:09 AM +07 2025] _d='eagles.edu.vn'
+[Wed Dec 17 12:53:09 AM +07 2025] _authz_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:09 AM +07 2025] =======Sending Signed Request=======
+[Wed Dec 17 12:53:09 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:09 AM +07 2025] payload
+[Wed Dec 17 12:53:09 AM +07 2025] Use cached jwk for file: /root/.acme.sh/ca/acme-v02.api.letsencrypt.org/directory/account.key
+[Wed Dec 17 12:53:09 AM +07 2025] Use _CACHED_NONCE='hSQhSvkiAHYxEP7FKbIoGq9vZRSA2q54OpSb830a-O3WLSn9syI'
+[Wed Dec 17 12:53:09 AM +07 2025] nonce='hSQhSvkiAHYxEP7FKbIoGq9vZRSA2q54OpSb830a-O3WLSn9syI'
+[Wed Dec 17 12:53:09 AM +07 2025] POST
+[Wed Dec 17 12:53:09 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:09 AM +07 2025] body='{"protected": "eyJub25jZSI6ICJoU1FoU3ZraUFIWXhFUDdGS2JJb0dxOXZaUlNBMnE1NE9wU2I4MzBhLU8zV0xTbjlzeUkiLCAidXJsIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL2F1dGh6LzIyNDIwNjI4MDUvNjI0NDU2Nzg2ODY2IiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiaHR0cHM6Ly9hY21lLXYwMi5hcGkubGV0c2VuY3J5cHQub3JnL2FjbWUvYWNjdC8yMjQyMDYyODA1In0", "payload": "", "signature": "rBC6zQT07TF0CbVED0XkHwBZ0nTMquG0YQs8tArCp8yWHMmS7orXBl0YaocRkKRImpJc8CUw5lrOwOKlPv7_6A"}'
+[Wed Dec 17 12:53:09 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:09 AM +07 2025] Http already initialized.
+[Wed Dec 17 12:53:09 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g '
+[Wed Dec 17 12:53:10 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:10 AM +07 2025] responseHeaders='HTTP/2 200
+server: nginx
+date: Tue, 16 Dec 2025 17:53:10 GMT
+content-type: application/json
+content-length: 546
+boulder-requester: 2242062805
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+replay-nonce: aA-f6exO4-3qJeuzxQYu1Vf6S5eZTc-zgfo5w02aZFYvrycI-0Q
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:10 AM +07 2025] code='200'
+[Wed Dec 17 12:53:10 AM +07 2025] original='{
+  "identifier": {
+    "type": "dns",
+    "value": "www.eagles.edu.vn"
+  },
+  "status": "valid",
+  "expires": "2026-01-07T10:46:55Z",
+  "challenges": [
+    {
+      "type": "dns-01",
+      "url": "https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw",
+      "status": "valid",
+      "validated": "2025-12-08T10:46:52Z",
+      "token": "yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA",
+      "validationRecord": [
+        {
+          "hostname": "www.eagles.edu.vn",
+          "addressUsed": ""
+        }
+      ]
+    }
+  ]
+}'
+[Wed Dec 17 12:53:10 AM +07 2025] response='{"identifier":{"type":"dns","value":"www.eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:55Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""}]}]}'
+[Wed Dec 17 12:53:10 AM +07 2025] response='{"identifier":{"type":"dns","value":"www.eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:55Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""}]}]}'
+[Wed Dec 17 12:53:10 AM +07 2025] _d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] _authorizations_map='www.eagles.edu.vn,{"identifier":{"type":"dns","value":"www.eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:55Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866
+eagles.edu.vn,{"identifier":{"type":"dns","value":"eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:49Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776
+'
+[Wed Dec 17 12:53:10 AM +07 2025] d='eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] Getting webroot for domain='eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] _w='dns'
+[Wed Dec 17 12:53:10 AM +07 2025] _currentRoot='dns'
+[Wed Dec 17 12:53:10 AM +07 2025] _is_idn_d='eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:10 AM +07 2025] _candidates='eagles.edu.vn,{"identifier":{"type":"dns","value":"eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:49Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:10 AM +07 2025] response='{"identifier":{"type":"dns","value":"eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:49Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:10 AM +07 2025] _authz_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:10 AM +07 2025] eagles.edu.vn is already valid.
+[Wed Dec 17 12:53:10 AM +07 2025] keyauthorization='verified_ok'
+[Wed Dec 17 12:53:10 AM +07 2025] entry='"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786776/awko3w","status":"valid","validated":"2025-12-08T10:46:46Z","token":"582LLsrNScSWiEy-ynBB5t_PmCYw_nMwcccVPxeHrDk","validationRecord":[{"hostname":"eagles.edu.vn","addressUsed":""'
+[Wed Dec 17 12:53:10 AM +07 2025] dvlist='eagles.edu.vn#verified_ok##dns-01#dns#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776'
+[Wed Dec 17 12:53:10 AM +07 2025] d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] Getting webroot for domain='www.eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] _w='dns'
+[Wed Dec 17 12:53:10 AM +07 2025] _currentRoot='dns'
+[Wed Dec 17 12:53:10 AM +07 2025] _is_idn_d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:10 AM +07 2025] _idn_temp
+[Wed Dec 17 12:53:11 AM +07 2025] _candidates='www.eagles.edu.vn,{"identifier":{"type":"dns","value":"www.eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:55Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:11 AM +07 2025] response='{"identifier":{"type":"dns","value":"www.eagles.edu.vn"},"status":"valid","expires":"2026-01-07T10:46:55Z","challenges":[{"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""}]}]}#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:11 AM +07 2025] _authz_url='https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:11 AM +07 2025] www.eagles.edu.vn is already valid.
+[Wed Dec 17 12:53:11 AM +07 2025] keyauthorization='verified_ok'
+[Wed Dec 17 12:53:11 AM +07 2025] entry='"type":"dns-01","url":"https://acme-v02.api.letsencrypt.org/acme/chall/2242062805/624456786866/Jjr-Gw","status":"valid","validated":"2025-12-08T10:46:52Z","token":"yWexaBqB95jbDvl2S7WB90O8i2iCa-_LIw1RDhfvlRA","validationRecord":[{"hostname":"www.eagles.edu.vn","addressUsed":""'
+[Wed Dec 17 12:53:11 AM +07 2025] dvlist='www.eagles.edu.vn#verified_ok##dns-01#dns#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866'
+[Wed Dec 17 12:53:11 AM +07 2025] d
+[Wed Dec 17 12:53:11 AM +07 2025] vlist='eagles.edu.vn#verified_ok##dns-01#dns#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776,www.eagles.edu.vn#verified_ok##dns-01#dns#https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866,'
+[Wed Dec 17 12:53:11 AM +07 2025] d='eagles.edu.vn'
+[Wed Dec 17 12:53:11 AM +07 2025] eagles.edu.vn has already been verified, skipping dns-01.
+[Wed Dec 17 12:53:11 AM +07 2025] d='www.eagles.edu.vn'
+[Wed Dec 17 12:53:11 AM +07 2025] www.eagles.edu.vn has already been verified, skipping dns-01.
+[Wed Dec 17 12:53:11 AM +07 2025] OK, let's start verification
+[Wed Dec 17 12:53:11 AM +07 2025] eagles.edu.vn is already verified, skipping dns-01.
+[Wed Dec 17 12:53:11 AM +07 2025] www.eagles.edu.vn is already verified, skipping dns-01.
+[Wed Dec 17 12:53:11 AM +07 2025] pid
+[Wed Dec 17 12:53:11 AM +07 2025] No need to restore nginx config, skipping.
+[Wed Dec 17 12:53:11 AM +07 2025] _clearupdns
+[Wed Dec 17 12:53:11 AM +07 2025] dns_entries
+[Wed Dec 17 12:53:11 AM +07 2025] Skipping dns.
+[Wed Dec 17 12:53:11 AM +07 2025] Verification finished, beginning signing.
+[Wed Dec 17 12:53:11 AM +07 2025] i='2'
+[Wed Dec 17 12:53:11 AM +07 2025] j='8'
+[Wed Dec 17 12:53:11 AM +07 2025] Let's finalize the order.
+[Wed Dec 17 12:53:11 AM +07 2025] Le_OrderFinalize='https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326'
+[Wed Dec 17 12:53:11 AM +07 2025] =======Sending Signed Request=======
+[Wed Dec 17 12:53:11 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326'
+[Wed Dec 17 12:53:11 AM +07 2025] payload='{"csr": "MIIBLzCB1wIBADAYMRYwFAYDVQQDDA1lYWdsZXMuZWR1LnZuMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEc-PgdgP24untZcuzQriur8e1m9mKaJmNoKWRxAY5f_mQpn3I11Cdcb3wbnS7jEQbeiChvfXCL_-AtKc2dDogU6BdMFsGCSqGSIb3DQEJDjFOMEwwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMCsGA1UdEQQkMCKCDWVhZ2xlcy5lZHUudm6CEXd3dy5lYWdsZXMuZWR1LnZuMAoGCCqGSM49BAMCA0cAMEQCIGpBwYvqVbvhGIllV7aloNzkRQ_Uo5u67xlGnj1to7T1AiBpokB8TtHovVaDXMdcw5bHJxBZoBDMmvUUPHSt7S2mdA"}'
+[Wed Dec 17 12:53:11 AM +07 2025] Use cached jwk for file: /root/.acme.sh/ca/acme-v02.api.letsencrypt.org/directory/account.key
+[Wed Dec 17 12:53:11 AM +07 2025] Use _CACHED_NONCE='aA-f6exO4-3qJeuzxQYu1Vf6S5eZTc-zgfo5w02aZFYvrycI-0Q'
+[Wed Dec 17 12:53:11 AM +07 2025] nonce='aA-f6exO4-3qJeuzxQYu1Vf6S5eZTc-zgfo5w02aZFYvrycI-0Q'
+[Wed Dec 17 12:53:11 AM +07 2025] POST
+[Wed Dec 17 12:53:11 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326'
+[Wed Dec 17 12:53:11 AM +07 2025] body='{"protected": "eyJub25jZSI6ICJhQS1mNmV4TzQtM3FKZXV6eFFZdTFWZjZTNWVaVGMtemdmbzV3MDJhWkZZdnJ5Y0ktMFEiLCAidXJsIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL2ZpbmFsaXplLzIyNDIwNjI4MDUvNDU5NDgwNjQ1MzI2IiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiaHR0cHM6Ly9hY21lLXYwMi5hcGkubGV0c2VuY3J5cHQub3JnL2FjbWUvYWNjdC8yMjQyMDYyODA1In0", "payload": "eyJjc3IiOiAiTUlJQkx6Q0Ixd0lCQURBWU1SWXdGQVlEVlFRRERBMWxZV2RzWlhNdVpXUjFMblp1TUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFYy1QZ2RnUDI0dW50WmN1elFyaXVyOGUxbTltS2FKbU5vS1dSeEFZNWZfbVFwbjNJMTFDZGNiM3diblM3akVRYmVpQ2h2ZlhDTF8tQXRLYzJkRG9nVTZCZE1Gc0dDU3FHU0liM0RRRUpEakZPTUV3d0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSEF3RUdDQ3NHQVFVRkJ3TUNNQ3NHQTFVZEVRUWtNQ0tDRFdWaFoyeGxjeTVsWkhVdWRtNkNFWGQzZHk1bFlXZHNaWE11WldSMUxuWnVNQW9HQ0NxR1NNNDlCQU1DQTBjQU1FUUNJR3BCd1l2cVZidmhHSWxsVjdhbG9OemtSUV9VbzV1Njd4bEduajF0bzdUMUFpQnBva0I4VHRIb3ZWYURYTWRjdzViSEp4QlpvQkRNbXZVVVBIU3Q3UzJtZEEifQ", "signature": "ZsI816kfwUa5BF65yRB1qD1HYk-raq3GMsOIFozBH4zMGEbF8fP_yHq5E3_ASDVvZua4FjyRB0Pq6lVhOSc8zA"}'
+[Wed Dec 17 12:53:11 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:11 AM +07 2025] Http already initialized.
+[Wed Dec 17 12:53:11 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g '
+[Wed Dec 17 12:53:15 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:15 AM +07 2025] responseHeaders='HTTP/2 200
+server: nginx
+date: Tue, 16 Dec 2025 17:53:15 GMT
+content-type: application/json
+content-length: 597
+boulder-requester: 2242062805
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+location: https://acme-v02.api.letsencrypt.org/acme/order/2242062805/459480645326
+replay-nonce: aA-f6exOgRYLAiRrf7RSp4TlJeauU3HKwvewgSY1r2GEGApUfm8
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:15 AM +07 2025] code='200'
+[Wed Dec 17 12:53:15 AM +07 2025] original='{
+  "status": "valid",
+  "expires": "2025-12-23T17:53:08Z",
+  "identifiers": [
+    {
+      "type": "dns",
+      "value": "eagles.edu.vn"
+    },
+    {
+      "type": "dns",
+      "value": "www.eagles.edu.vn"
+    }
+  ],
+  "authorizations": [
+    "https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776",
+    "https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866"
+  ],
+  "finalize": "https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326",
+  "certificate": "https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b"
+}'
+[Wed Dec 17 12:53:15 AM +07 2025] response='{"status":"valid","expires":"2025-12-23T17:53:08Z","identifiers":[{"type":"dns","value":"eagles.edu.vn"},{"type":"dns","value":"www.eagles.edu.vn"}],"authorizations":["https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786776","https://acme-v02.api.letsencrypt.org/acme/authz/2242062805/624456786866"],"finalize":"https://acme-v02.api.letsencrypt.org/acme/finalize/2242062805/459480645326","certificate":"https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b"}'
+[Wed Dec 17 12:53:15 AM +07 2025] Order status is valid.
+[Wed Dec 17 12:53:15 AM +07 2025] Le_LinkCert='https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b'
+[Wed Dec 17 12:53:15 AM +07 2025] Downloading cert.
+[Wed Dec 17 12:53:15 AM +07 2025] Le_LinkCert='https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b'
+[Wed Dec 17 12:53:15 AM +07 2025] =======Sending Signed Request=======
+[Wed Dec 17 12:53:15 AM +07 2025] url='https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b'
+[Wed Dec 17 12:53:15 AM +07 2025] payload
+[Wed Dec 17 12:53:15 AM +07 2025] Use cached jwk for file: /root/.acme.sh/ca/acme-v02.api.letsencrypt.org/directory/account.key
+[Wed Dec 17 12:53:15 AM +07 2025] Use _CACHED_NONCE='aA-f6exOgRYLAiRrf7RSp4TlJeauU3HKwvewgSY1r2GEGApUfm8'
+[Wed Dec 17 12:53:15 AM +07 2025] nonce='aA-f6exOgRYLAiRrf7RSp4TlJeauU3HKwvewgSY1r2GEGApUfm8'
+[Wed Dec 17 12:53:15 AM +07 2025] POST
+[Wed Dec 17 12:53:15 AM +07 2025] _post_url='https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b'
+[Wed Dec 17 12:53:15 AM +07 2025] body='{"protected": "eyJub25jZSI6ICJhQS1mNmV4T2dSWUxBaVJyZjdSU3A0VGxKZWF1VTNIS3d2ZXdnU1kxcjJHRUdBcFVmbTgiLCAidXJsIjogImh0dHBzOi8vYWNtZS12MDIuYXBpLmxldHNlbmNyeXB0Lm9yZy9hY21lL2NlcnQvMDY4MThmY2Y2M2EzY2I4OTg2NzhjOTM5ZmVhMjIwMjJkZjZiIiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiaHR0cHM6Ly9hY21lLXYwMi5hcGkubGV0c2VuY3J5cHQub3JnL2FjbWUvYWNjdC8yMjQyMDYyODA1In0", "payload": "", "signature": "3gheWoHTRnLeU5psCMSlbHHQ5aKpn92zA46OL2sz9NieaeogeL_T9UqqOuMHVsIhqPelOvMMp9QWBt_mdhB1TQ"}'
+[Wed Dec 17 12:53:15 AM +07 2025] _postContentType='application/jose+json'
+[Wed Dec 17 12:53:15 AM +07 2025] Http already initialized.
+[Wed Dec 17 12:53:15 AM +07 2025] _CURL='curl --silent --dump-header /root/.acme.sh/http.header  -L  --trace-ascii /tmp/tmp.vIgE76M6Ka  -g '
+[Wed Dec 17 12:53:16 AM +07 2025] _ret='0'
+[Wed Dec 17 12:53:16 AM +07 2025] responseHeaders='HTTP/2 200
+server: nginx
+date: Tue, 16 Dec 2025 17:53:16 GMT
+content-type: application/pem-certificate-chain
+content-length: 2889
+cache-control: public, max-age=0, no-cache
+link: <https://acme-v02.api.letsencrypt.org/directory>;rel="index"
+link: <https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b/1>;rel="alternate"
+replay-nonce: YWDLJucGLspCOO7KOIqIsiRHjSPnxpWW5aunl2FWlPmZeHVXMIc
+x-frame-options: DENY
+strict-transport-security: max-age=604800
+'
+[Wed Dec 17 12:53:16 AM +07 2025] code='200'
+[Wed Dec 17 12:53:16 AM +07 2025] original='-----BEGIN CERTIFICATE-----
+MIIDojCCAymgAwIBAgISBoGPz2Ojy4mGeMk5/qIgIt9rMAoGCCqGSM49BAMDMDIx
+CzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJF
+NzAeFw0yNTEyMTYxNjU0NDNaFw0yNjAzMTYxNjU0NDJaMBgxFjAUBgNVBAMTDWVh
+Z2xlcy5lZHUudm4wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARz4+B2A/bi6e1l
+y7NCuK6vx7Wb2YpomY2gpZHEBjl/+ZCmfcjXUJ1xvfBudLuMRBt6IKG99cIv/4C0
+pzZ0OiBTo4ICNzCCAjMwDgYDVR0PAQH/BAQDAgeAMB0GA1UdJQQWMBQGCCsGAQUF
+BwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBTLB5nQwwmoxwRB
+w8Q29xaweXrKZzAfBgNVHSMEGDAWgBSuSJ7chx1EoG/aouVgdAR4wpwAgDAyBggr
+BgEFBQcBAQQmMCQwIgYIKwYBBQUHMAKGFmh0dHA6Ly9lNy5pLmxlbmNyLm9yZy8w
+KwYDVR0RBCQwIoINZWFnbGVzLmVkdS52boIRd3d3LmVhZ2xlcy5lZHUudm4wEwYD
+VR0gBAwwCjAIBgZngQwBAgEwLgYDVR0fBCcwJTAjoCGgH4YdaHR0cDovL2U3LmMu
+bGVuY3Iub3JnLzEwOC5jcmwwggEMBgorBgEEAdZ5AgQCBIH9BIH6APgAdgBJnJtp
+3h187Pw23s2HZKa4W68Kh4AZ0VVS++nrKd34wwAAAZsoS3tgAAAEAwBHMEUCIQD+
+zR8/gTLMiTy+o9hXLIVwJ42oAaongg5KvlO6X3X6lwIgbN+unGfLRbGdM6pj3nkV
++RGsHtHeRbiJqfTIFxu14GQAfgClyXiSXVdGF4KHDdiJZgtcVWSLfQBA8uwHaFHR
+iGkZ9wAAAZsoS35OAAgAAAUAK9n4iwQDAEcwRQIhAM32AKPzE3lyo+7hgBe636kF
+a/eac4xy16AHXqxKooBpAiBCcM3kAbl9w/lltaW0hN7fHuwQFKcz1+eUHqHyGYzy
+hDAKBggqhkjOPQQDAwNnADBkAjAknufxlIwQ7BXB24bTPFwHD67XS3PKfZ1yvemD
+MCnCoxUD8GgPh/vWbJLC047QVxcCMGOKM2VPcCVZy6SmVOCpLHjoac9Br+2GC3u2
+AtDmSlmhFt55oJDx6UuTqhqXWg4MxQ==
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIEVzCCAj+gAwIBAgIRAKp18eYrjwoiCWbTi7/UuqEwDQYJKoZIhvcNAQELBQAw
+TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
+cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjQwMzEzMDAwMDAw
+WhcNMjcwMzEyMjM1OTU5WjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg
+RW5jcnlwdDELMAkGA1UEAxMCRTcwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAARB6AST
+CFh/vjcwDMCgQer+VtqEkz7JANurZxLP+U9TCeioL6sp5Z8VRvRbYk4P1INBmbef
+QHJFHCxcSjKmwtvGBWpl/9ra8HW0QDsUaJW2qOJqceJ0ZVFT3hbUHifBM/2jgfgw
+gfUwDgYDVR0PAQH/BAQDAgGGMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcD
+ATASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBSuSJ7chx1EoG/aouVgdAR4
+wpwAgDAfBgNVHSMEGDAWgBR5tFnme7bl5AFzgAiIyBpY9umbbjAyBggrBgEFBQcB
+AQQmMCQwIgYIKwYBBQUHMAKGFmh0dHA6Ly94MS5pLmxlbmNyLm9yZy8wEwYDVR0g
+BAwwCjAIBgZngQwBAgEwJwYDVR0fBCAwHjAcoBqgGIYWaHR0cDovL3gxLmMubGVu
+Y3Iub3JnLzANBgkqhkiG9w0BAQsFAAOCAgEAjx66fDdLk5ywFn3CzA1w1qfylHUD
+aEf0QZpXcJseddJGSfbUUOvbNR9N/QQ16K1lXl4VFyhmGXDT5Kdfcr0RvIIVrNxF
+h4lqHtRRCP6RBRstqbZ2zURgqakn/Xip0iaQL0IdfHBZr396FgknniRYFckKORPG
+yM3QKnd66gtMst8I5nkRQlAg/Jb+Gc3egIvuGKWboE1G89NTsN9LTDD3PLj0dUMr
+OIuqVjLB8pEC6yk9enrlrqjXQgkLEYhXzq7dLafv5Vkig6Gl0nuuqjqfp0Q1bi1o
+yVNAlXe6aUXw92CcghC9bNsKEO1+M52YY5+ofIXlS/SEQbvVYYBLZ5yeiglV6t3S
+M6H+vTG0aP9YHzLn/KVOHzGQfXDP7qM5tkf+7diZe7o2fw6O7IvN6fsQXEQQj8TJ
+UXJxv2/uJhcuy/tSDgXwHM8Uk34WNbRT7zGTGkQRX0gsbjAea/jYAoWv0ZvQRwpq
+Pe79D/i7Cep8qWnA+7AE/3B3S/3dEEYmc0lpe1366A/6GEgk3ktr9PEoQrLChs6I
+tu3wnNLB2euC8IKGLQFpGtOO/2/hiAKjyajaBP25w1jF0Wl8Bbqne3uZ2q1GyPFJ
+YRmT7/OXpmOH/FVLtwS+8ng1cAmpCujPwteJZNcDG0sF2n/sc0+SQf49fdyUK0ty
++VUwFj9tmWxyR/M=
+-----END CERTIFICATE-----'
+[Wed Dec 17 12:53:16 AM +07 2025] response='-----BEGIN CERTIFICATE-----
+MIIDojCCAymgAwIBAgISBoGPz2Ojy4mGeMk5/qIgIt9rMAoGCCqGSM49BAMDMDIx
+CzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJF
+NzAeFw0yNTEyMTYxNjU0NDNaFw0yNjAzMTYxNjU0NDJaMBgxFjAUBgNVBAMTDWVh
+Z2xlcy5lZHUudm4wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARz4+B2A/bi6e1l
+y7NCuK6vx7Wb2YpomY2gpZHEBjl/+ZCmfcjXUJ1xvfBudLuMRBt6IKG99cIv/4C0
+pzZ0OiBTo4ICNzCCAjMwDgYDVR0PAQH/BAQDAgeAMB0GA1UdJQQWMBQGCCsGAQUF
+BwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBTLB5nQwwmoxwRB
+w8Q29xaweXrKZzAfBgNVHSMEGDAWgBSuSJ7chx1EoG/aouVgdAR4wpwAgDAyBggr
+BgEFBQcBAQQmMCQwIgYIKwYBBQUHMAKGFmh0dHA6Ly9lNy5pLmxlbmNyLm9yZy8w
+KwYDVR0RBCQwIoINZWFnbGVzLmVkdS52boIRd3d3LmVhZ2xlcy5lZHUudm4wEwYD
+VR0gBAwwCjAIBgZngQwBAgEwLgYDVR0fBCcwJTAjoCGgH4YdaHR0cDovL2U3LmMu
+bGVuY3Iub3JnLzEwOC5jcmwwggEMBgorBgEEAdZ5AgQCBIH9BIH6APgAdgBJnJtp
+3h187Pw23s2HZKa4W68Kh4AZ0VVS++nrKd34wwAAAZsoS3tgAAAEAwBHMEUCIQD+
+zR8/gTLMiTy+o9hXLIVwJ42oAaongg5KvlO6X3X6lwIgbN+unGfLRbGdM6pj3nkV
++RGsHtHeRbiJqfTIFxu14GQAfgClyXiSXVdGF4KHDdiJZgtcVWSLfQBA8uwHaFHR
+iGkZ9wAAAZsoS35OAAgAAAUAK9n4iwQDAEcwRQIhAM32AKPzE3lyo+7hgBe636kF
+a/eac4xy16AHXqxKooBpAiBCcM3kAbl9w/lltaW0hN7fHuwQFKcz1+eUHqHyGYzy
+hDAKBggqhkjOPQQDAwNnADBkAjAknufxlIwQ7BXB24bTPFwHD67XS3PKfZ1yvemD
+MCnCoxUD8GgPh/vWbJLC047QVxcCMGOKM2VPcCVZy6SmVOCpLHjoac9Br+2GC3u2
+AtDmSlmhFt55oJDx6UuTqhqXWg4MxQ==
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIEVzCCAj+gAwIBAgIRAKp18eYrjwoiCWbTi7/UuqEwDQYJKoZIhvcNAQELBQAw
+TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
+cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjQwMzEzMDAwMDAw
+WhcNMjcwMzEyMjM1OTU5WjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg
+RW5jcnlwdDELMAkGA1UEAxMCRTcwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAARB6AST
+CFh/vjcwDMCgQer+VtqEkz7JANurZxLP+U9TCeioL6sp5Z8VRvRbYk4P1INBmbef
+QHJFHCxcSjKmwtvGBWpl/9ra8HW0QDsUaJW2qOJqceJ0ZVFT3hbUHifBM/2jgfgw
+gfUwDgYDVR0PAQH/BAQDAgGGMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcD
+ATASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBSuSJ7chx1EoG/aouVgdAR4
+wpwAgDAfBgNVHSMEGDAWgBR5tFnme7bl5AFzgAiIyBpY9umbbjAyBggrBgEFBQcB
+AQQmMCQwIgYIKwYBBQUHMAKGFmh0dHA6Ly94MS5pLmxlbmNyLm9yZy8wEwYDVR0g
+BAwwCjAIBgZngQwBAgEwJwYDVR0fBCAwHjAcoBqgGIYWaHR0cDovL3gxLmMubGVu
+Y3Iub3JnLzANBgkqhkiG9w0BAQsFAAOCAgEAjx66fDdLk5ywFn3CzA1w1qfylHUD
+aEf0QZpXcJseddJGSfbUUOvbNR9N/QQ16K1lXl4VFyhmGXDT5Kdfcr0RvIIVrNxF
+h4lqHtRRCP6RBRstqbZ2zURgqakn/Xip0iaQL0IdfHBZr396FgknniRYFckKORPG
+yM3QKnd66gtMst8I5nkRQlAg/Jb+Gc3egIvuGKWboE1G89NTsN9LTDD3PLj0dUMr
+OIuqVjLB8pEC6yk9enrlrqjXQgkLEYhXzq7dLafv5Vkig6Gl0nuuqjqfp0Q1bi1o
+yVNAlXe6aUXw92CcghC9bNsKEO1+M52YY5+ofIXlS/SEQbvVYYBLZ5yeiglV6t3S
+M6H+vTG0aP9YHzLn/KVOHzGQfXDP7qM5tkf+7diZe7o2fw6O7IvN6fsQXEQQj8TJ
+UXJxv2/uJhcuy/tSDgXwHM8Uk34WNbRT7zGTGkQRX0gsbjAea/jYAoWv0ZvQRwpq
+Pe79D/i7Cep8qWnA+7AE/3B3S/3dEEYmc0lpe1366A/6GEgk3ktr9PEoQrLChs6I
+tu3wnNLB2euC8IKGLQFpGtOO/2/hiAKjyajaBP25w1jF0Wl8Bbqne3uZ2q1GyPFJ
+YRmT7/OXpmOH/FVLtwS+8ng1cAmpCujPwteJZNcDG0sF2n/sc0+SQf49fdyUK0ty
++VUwFj9tmWxyR/M=
+-----END CERTIFICATE-----'
+[Wed Dec 17 12:53:16 AM +07 2025] Found cert chain
+[Wed Dec 17 12:53:16 AM +07 2025] _end_n='22'
+[Wed Dec 17 12:53:16 AM +07 2025] Le_LinkCert='https://acme-v02.api.letsencrypt.org/acme/cert/06818fcf63a3cb898678c939fea22022df6b'
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            06:81:8f:cf:63:a3:cb:89:86:78:c9:39:fe:a2:20:22:df:6b
+        Signature Algorithm: ecdsa-with-SHA384
+        Issuer: C = US, O = Let's Encrypt, CN = E7
+        Validity
+            Not Before: Dec 16 16:54:43 2025 GMT
+            Not After : Mar 16 16:54:42 2026 GMT
+        Subject: CN = eagles.edu.vn
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub:
+                    04:73:e3:e0:76:03:f6:e2:e9:ed:65:cb:b3:42:b8:
+                    ae:af:c7:b5:9b:d9:8a:68:99:8d:a0:a5:91:c4:06:
+                    39:7f:f9:90:a6:7d:c8:d7:50:9d:71:bd:f0:6e:74:
+                    bb:8c:44:1b:7a:20:a1:bd:f5:c2:2f:ff:80:b4:a7:
+                    36:74:3a:20:53
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage:
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Subject Key Identifier:
+                CB:07:99:D0:C3:09:A8:C7:04:41:C3:C4:36:F7:16:B0:79:7A:CA:67
+            X509v3 Authority Key Identifier:
+                AE:48:9E:DC:87:1D:44:A0:6F:DA:A2:E5:60:74:04:78:C2:9C:00:80
+            Authority Information Access:
+                CA Issuers - URI:http://e7.i.lencr.org/
+            X509v3 Subject Alternative Name:
+                DNS:eagles.edu.vn, DNS:www.eagles.edu.vn
+            X509v3 Certificate Policies:
+                Policy: 2.23.140.1.2.1
+            X509v3 CRL Distribution Points:
+                Full Name:
+                  URI:http://e7.c.lencr.org/108.crl
+            CT Precertificate SCTs:
+                Signed Certificate Timestamp:
+                    Version   : v1 (0x0)
+                    Log ID    : 49:9C:9B:69:DE:1D:7C:EC:FC:36:DE:CD:87:64:A6:B8:
+                                5B:AF:0A:87:80:19:D1:55:52:FB:E9:EB:29:DD:F8:C3
+                    Timestamp : Dec 16 17:53:14.080 2025 GMT
+                    Extensions: none
+                    Signature : ecdsa-with-SHA256
+                                30:45:02:21:00:FE:CD:1F:3F:81:32:CC:89:3C:BE:A3:
+                                D8:57:2C:85:70:27:8D:A8:01:AA:27:82:0E:4A:BE:53:
+                                BA:5F:75:FA:97:02:20:6C:DF:AE:9C:67:CB:45:B1:9D:
+                                33:AA:63:DE:79:15:F9:11:AC:1E:D1:DE:45:B8:89:A9:
+                                F4:C8:17:1B:B5:E0:64
+                Signed Certificate Timestamp:
+                    Version   : v1 (0x0)
+                    Log ID    : A5:C9:78:92:5D:57:46:17:82:87:0D:D8:89:66:0B:5C:
+                                55:64:8B:7D:00:40:F2:EC:07:68:51:D1:88:69:19:F7
+                    Timestamp : Dec 16 17:53:14.830 2025 GMT
+                    Extensions: 00:00:05:00:2B:D9:F8:8B
+                    Signature : ecdsa-with-SHA256
+                                30:45:02:21:00:CD:F6:00:A3:F3:13:79:72:A3:EE:E1:
+                                80:17:BA:DF:A9:05:6B:F7:9A:73:8C:72:D7:A0:07:5E:
+                                AC:4A:A2:80:69:02:20:42:70:CD:E4:01:B9:7D:C3:F9:
+                                65:B5:A5:B4:84:DE:DF:1E:EC:10:14:A7:33:D7:E7:94:
+                                1E:A1:F2:19:8C:F2:84
+    Signature Algorithm: ecdsa-with-SHA384
+    Signature Value:
+        30:64:02:30:24:9e:e7:f1:94:8c:10:ec:15:c1:db:86:d3:3c:
+        5c:07:0f:ae:d7:4b:73:ca:7d:9d:72:bd:e9:83:30:29:c2:a3:
+        15:03:f0:68:0f:87:fb:d6:6c:92:c2:d3:8e:d0:57:17:02:30:
+        63:8a:33:65:4f:70:25:59:cb:a4:a6:54:e0:a9:2c:78:e8:69:
+        cf:41:af:ed:86:0b:7b:b6:02:d0:e6:4a:59:a1:16:de:79:a0:
+        90:f1:e9:4b:93:aa:1a:97:5a:0e:0c:c5
+[Wed Dec 17 12:53:16 AM +07 2025] Cert success.
+-----BEGIN CERTIFICATE-----
+MIIDojCCAymgAwIBAgISBoGPz2Ojy4mGeMk5/qIgIt9rMAoGCCqGSM49BAMDMDIx
+CzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJF
+NzAeFw0yNTEyMTYxNjU0NDNaFw0yNjAzMTYxNjU0NDJaMBgxFjAUBgNVBAMTDWVh
+Z2xlcy5lZHUudm4wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARz4+B2A/bi6e1l
+y7NCuK6vx7Wb2YpomY2gpZHEBjl/+ZCmfcjXUJ1xvfBudLuMRBt6IKG99cIv/4C0
+pzZ0OiBTo4ICNzCCAjMwDgYDVR0PAQH/BAQDAgeAMB0GA1UdJQQWMBQGCCsGAQUF
+BwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBTLB5nQwwmoxwRB
+w8Q29xaweXrKZzAfBgNVHSMEGDAWgBSuSJ7chx1EoG/aouVgdAR4wpwAgDAyBggr
+BgEFBQcBAQQmMCQwIgYIKwYBBQUHMAKGFmh0dHA6Ly9lNy5pLmxlbmNyLm9yZy8w
+KwYDVR0RBCQwIoINZWFnbGVzLmVkdS52boIRd3d3LmVhZ2xlcy5lZHUudm4wEwYD
+VR0gBAwwCjAIBgZngQwBAgEwLgYDVR0fBCcwJTAjoCGgH4YdaHR0cDovL2U3LmMu
+bGVuY3Iub3JnLzEwOC5jcmwwggEMBgorBgEEAdZ5AgQCBIH9BIH6APgAdgBJnJtp
+3h187Pw23s2HZKa4W68Kh4AZ0VVS++nrKd34wwAAAZsoS3tgAAAEAwBHMEUCIQD+
+zR8/gTLMiTy+o9hXLIVwJ42oAaongg5KvlO6X3X6lwIgbN+unGfLRbGdM6pj3nkV
++RGsHtHeRbiJqfTIFxu14GQAfgClyXiSXVdGF4KHDdiJZgtcVWSLfQBA8uwHaFHR
+iGkZ9wAAAZsoS35OAAgAAAUAK9n4iwQDAEcwRQIhAM32AKPzE3lyo+7hgBe636kF
+a/eac4xy16AHXqxKooBpAiBCcM3kAbl9w/lltaW0hN7fHuwQFKcz1+eUHqHyGYzy
+hDAKBggqhkjOPQQDAwNnADBkAjAknufxlIwQ7BXB24bTPFwHD67XS3PKfZ1yvemD
+MCnCoxUD8GgPh/vWbJLC047QVxcCMGOKM2VPcCVZy6SmVOCpLHjoac9Br+2GC3u2
+AtDmSlmhFt55oJDx6UuTqhqXWg4MxQ==
+-----END CERTIFICATE-----
+[Wed Dec 17 12:53:16 AM +07 2025] Your cert is in: /root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.cer
+[Wed Dec 17 12:53:16 AM +07 2025] Your cert key is in: /root/.acme.sh/eagles.edu.vn_ecc/eagles.edu.vn.key
+[Wed Dec 17 12:53:16 AM +07 2025] The intermediate CA cert is in: /root/.acme.sh/eagles.edu.vn_ecc/ca.cer
+[Wed Dec 17 12:53:16 AM +07 2025] And the full-chain cert is in: /root/.acme.sh/eagles.edu.vn_ecc/fullchain.cer
+[Wed Dec 17 12:53:16 AM +07 2025] _on_issue_success
+[Wed Dec 17 12:53:16 AM +07 2025] '' does not contain 'dns'
+
+WARN  [2025-12-17 00:53:16 +0700] Could not reliably parse both TXT values from acme.sh output.
+WARN  [2025-12-17 00:53:16 +0700] This can happen if acme.sh output format differs or the provider prints multi-line tokens.
+
+INPUT: Paste TXT value for _acme-challenge.eagles.edu.vn (no surrounding quotes): tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM
+INPUT: Paste TXT value for _acme-challenge.www.eagles.edu.vn (no surrounding quotes): oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc
+
+ACTION: Proceed with BOTH DNS TXT record additions now. When completed, press Enter here.  (press Enter to continue)
+
+INFO  [2025-12-17 00:57:31 +0700] DNS propagation verification (public resolvers + authoritative NS)
+
+INFO  [2025-12-17 00:57:31 +0700] Public resolver check for TXT: _acme-challenge.eagles.edu.vn
+INFO  [2025-12-17 00:57:31 +0700] Resolver @1.1.1.1 returned TXT:
+  - tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM
+INFO  [2025-12-17 00:57:31 +0700] Resolver @1.1.1.1: MATCH (expected token present).
+INFO  [2025-12-17 00:57:31 +0700] Resolver @8.8.8.8 returned TXT:
+  - tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM
+INFO  [2025-12-17 00:57:31 +0700] Resolver @8.8.8.8: MATCH (expected token present).
+INFO  [2025-12-17 00:57:31 +0700] Resolver @9.9.9.9 returned TXT:
+  - tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM
+INFO  [2025-12-17 00:57:31 +0700] Resolver @9.9.9.9: MATCH (expected token present).
+
+INFO  [2025-12-17 00:57:31 +0700] Public resolver check for TXT: _acme-challenge.www.eagles.edu.vn
+INFO  [2025-12-17 00:57:31 +0700] Resolver @1.1.1.1 returned TXT:
+  - oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc
+INFO  [2025-12-17 00:57:31 +0700] Resolver @1.1.1.1: MATCH (expected token present).
+INFO  [2025-12-17 00:57:31 +0700] Resolver @8.8.8.8 returned TXT:
+  - oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc
+INFO  [2025-12-17 00:57:31 +0700] Resolver @8.8.8.8: MATCH (expected token present).
+INFO  [2025-12-17 00:57:32 +0700] Resolver @9.9.9.9 returned TXT:
+  - oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc
+INFO  [2025-12-17 00:57:32 +0700] Resolver @9.9.9.9: MATCH (expected token present).
+
+INFO  [2025-12-17 00:57:32 +0700] Authoritative nameserver check for TXT: _acme-challenge.eagles.edu.vn
+INFO  [2025-12-17 00:57:32 +0700] Detected zone apex (SOA owner): eagles.edu.vn
+INFO  [2025-12-17 00:57:32 +0700] Authoritative NS for 'eagles.edu.vn':
+  - ns3.inet.vn
+  - ns1.inet.vn
+  - ns2.inet.vn
+INFO  [2025-12-17 00:57:32 +0700] Authoritative 'ns3.inet.vn' (203.113.174.42) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.eagles.edu.vn. 300 IN	TXT	"tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM"
+INFO  [2025-12-17 00:57:32 +0700] Authoritative 'ns3.inet.vn' (203.113.174.42): MATCH (expected token present).
+WARN  [2025-12-17 00:57:32 +0700] Authoritative 'ns3.inet.vn' (2401:5f80:4001:4::14): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.eagles.edu.vn @2401:5f80:4001:4::14
+INFO  [2025-12-17 00:57:32 +0700] Authoritative 'ns1.inet.vn' (202.92.4.25) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.eagles.edu.vn. 300 IN	TXT	"tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM"
+INFO  [2025-12-17 00:57:32 +0700] Authoritative 'ns1.inet.vn' (202.92.4.25): MATCH (expected token present).
+WARN  [2025-12-17 00:57:32 +0700] Authoritative 'ns1.inet.vn' (2001:df7:ce00:1::7): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.eagles.edu.vn @2001:df7:ce00:1::7
+INFO  [2025-12-17 00:57:33 +0700] Authoritative 'ns2.inet.vn' (210.211.99.38) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.eagles.edu.vn. 300 IN	TXT	"tcm6oh79moYpHunOfozmrXfCbgUMpWZGMfuns-aI3QM"
+INFO  [2025-12-17 00:57:33 +0700] Authoritative 'ns2.inet.vn' (210.211.99.38): MATCH (expected token present).
+WARN  [2025-12-17 00:57:33 +0700] Authoritative 'ns2.inet.vn' (2401:5f80:2001:4::30): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.eagles.edu.vn @2401:5f80:2001:4::30
+
+INFO  [2025-12-17 00:57:33 +0700] Authoritative nameserver check for TXT: _acme-challenge.www.eagles.edu.vn
+INFO  [2025-12-17 00:57:33 +0700] Detected zone apex (SOA owner): eagles.edu.vn
+INFO  [2025-12-17 00:57:33 +0700] Authoritative NS for 'eagles.edu.vn':
+  - ns3.inet.vn
+  - ns1.inet.vn
+  - ns2.inet.vn
+INFO  [2025-12-17 00:57:33 +0700] Authoritative 'ns3.inet.vn' (203.113.174.42) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.www.eagles.edu.vn. 300 IN TXT	"oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc"
+INFO  [2025-12-17 00:57:33 +0700] Authoritative 'ns3.inet.vn' (203.113.174.42): MATCH (expected token present).
+WARN  [2025-12-17 00:57:33 +0700] Authoritative 'ns3.inet.vn' (2401:5f80:4001:4::14): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.www.eagles.edu.vn @2401:5f80:4001:4::14
+INFO  [2025-12-17 00:57:34 +0700] Authoritative 'ns1.inet.vn' (202.92.4.25) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.www.eagles.edu.vn. 300 IN TXT	"oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc"
+INFO  [2025-12-17 00:57:34 +0700] Authoritative 'ns1.inet.vn' (202.92.4.25): MATCH (expected token present).
+WARN  [2025-12-17 00:57:34 +0700] Authoritative 'ns1.inet.vn' (2001:df7:ce00:1::7): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.www.eagles.edu.vn @2001:df7:ce00:1::7
+INFO  [2025-12-17 00:57:34 +0700] Authoritative 'ns2.inet.vn' (210.211.99.38) answers:
+  ; EDNS: version: 0, flags:; udp: 1680
+  _acme-challenge.www.eagles.edu.vn. 300 IN TXT	"oRy2fAXXmxeMN36UjutPqxfIIHOEuZFePF5zs2GYeSc"
+INFO  [2025-12-17 00:57:34 +0700] Authoritative 'ns2.inet.vn' (210.211.99.38): MATCH (expected token present).
+WARN  [2025-12-17 00:57:34 +0700] Authoritative 'ns2.inet.vn' (2401:5f80:2001:4::30): no DNS header returned. Possible firewall/UDP issues. Try: dig +tcp TXT _acme-challenge.www.eagles.edu.vn @2401:5f80:2001:4::30
+
+INFO  [2025-12-17 00:57:34 +0700] DNS check summary:
+INFO  [2025-12-17 00:57:34 +0700]   Public resolvers: apex=yes  www=yes
+INFO  [2025-12-17 00:57:34 +0700]   Authoritative NS: apex=yes www=yes
+INFO  [2025-12-17 00:57:34 +0700] DNS appears propagated (public + authoritative checks passed).
+
+PROMPT: Ready to run acme.sh --renew now (manual DNS, ECC) for 'eagles.edu.vn' and 'www.eagles.edu.vn'? [y/n]: y
+INFO  [2025-12-17 00:57:47 +0700] stdout - run acme.sh --renew (manual DNS, ECC)
+[Wed Dec 17 12:57:47 AM +07 2025] Let's find the script directory.
+[Wed Dec 17 12:57:47 AM +07 2025] _SCRIPT_='/root/.acme.sh/acme.sh'
+[Wed Dec 17 12:57:47 AM +07 2025] _script='/root/.acme.sh/acme.sh'
+[Wed Dec 17 12:57:47 AM +07 2025] _script_home='/root/.acme.sh'
+[Wed Dec 17 12:57:47 AM +07 2025] Using default home: /root/.acme.sh
+[Wed Dec 17 12:57:47 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:57:47 AM +07 2025] LE_WORKING_DIR='/root/.acme.sh'
+https://github.com/acmesh-official/acme.sh
+v3.1.2
+[Wed Dec 17 12:57:47 AM +07 2025] Running cmd: renew
+[Wed Dec 17 12:57:47 AM +07 2025] _renewServer
+[Wed Dec 17 12:57:47 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:57:47 AM +07 2025] default_acme_server='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:57:47 AM +07 2025] ACME_DIRECTORY='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:57:47 AM +07 2025] _ACME_SERVER_HOST='acme-v02.api.letsencrypt.org'
+[Wed Dec 17 12:57:47 AM +07 2025] _ACME_SERVER_PATH='directory'
+[Wed Dec 17 12:57:47 AM +07 2025] DOMAIN_PATH='/root/.acme.sh/eagles.edu.vn_ecc'
+[Wed Dec 17 12:57:47 AM +07 2025] Renewing: 'eagles.edu.vn'
+[Wed Dec 17 12:57:47 AM +07 2025] Le_API='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:57:47 AM +07 2025] Renewing using Le_API=https://acme-v02.api.letsencrypt.org/directory
+[Wed Dec 17 12:57:47 AM +07 2025] initpath again.
+[Wed Dec 17 12:57:47 AM +07 2025] Using config home: /root/.acme.sh
+[Wed Dec 17 12:57:47 AM +07 2025] ACME_DIRECTORY='https://acme-v02.api.letsencrypt.org/directory'
+[Wed Dec 17 12:57:47 AM +07 2025] _ACME_SERVER_HOST='acme-v02.api.letsencrypt.org'
+[Wed Dec 17 12:57:47 AM +07 2025] _ACME_SERVER_PATH='directory'
+[Wed Dec 17 12:57:47 AM +07 2025] Skipping. Next renewal time is: 2026-02-13T17:53:16Z
+[Wed Dec 17 12:57:47 AM +07 2025] Add '--force' to force renewal.
+ERROR [2025-12-17 00:57:47 +0700] acme.sh --renew failed (exit 2).
+ERROR [2025-12-17 00:57:47 +0700] Common causes: TXT mismatch, TXT not reachable by CA yet, multiple conflicting TXT records, or timing.
+PROMPT: Retry renew now? [y/n]: n
+WARN  [2025-12-17 00:58:22 +0700] Rollback initiated: renew failed and user chose not to retry
+INFO  [2025-12-17 00:58:22 +0700] Removing staged symlink: /etc/nginx/sites-enabled/eagles.edu.vn.conf
+INFO  [2025-12-17 00:58:22 +0700] Restoring production entry to: /etc/nginx/sites-enabled/eagles.edu.vn.conf
+INFO  [2025-12-17 00:58:22 +0700] Restoring ECC backup from: /root/.acme.sh/eagles.edu.vn_ecc.bak.2025-12-17-005304 -> /root/.acme.sh/eagles.edu.vn_ecc
+INFO  [2025-12-17 00:58:22 +0700] Validating nginx config after rollback (nginx -t)...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+WARN  [2025-12-17 00:58:23 +0700] Rollback complete. Exiting.
+You have mail in /var/mail/root
+root@cloud:/home/eagles/dockerz/renew_ssl# acme.sh --list
+Main_Domain            KeyLength  SAN_Domains                CA                    Created               Renew
+anhngu.eagles.edu.vn   "ec-256"   www.anhngu.eagles.edu.vn   LetsEncrypt.org       2025-09-07T08:52:06Z  2025-11-05T08:52:06Z
+anhngu.eaglesvn.com    "ec-256"   www.anhngu.eaglesvn.com    LetsEncrypt.org       2025-09-07T21:01:47Z  2025-11-05T21:01:47Z
+eagles.edu.vn          "ec-256"   no                         LetsEncrypt.org_test
+eaglesvn.com           "ec-256"   www.eaglesvn.com           LetsEncrypt.org       2025-09-07T18:53:15Z  2025-11-05T18:53:15Z
+eagles.vn              "ec-256"   www.eagles.vn              LetsEncrypt.org       2025-12-16T09:13:19Z  2026-02-13T09:13:19Z
+eaglesvn.online        "ec-256"   www.eaglesvn.online        LetsEncrypt.org       2025-12-16T09:58:55Z  2026-02-13T09:58:55Z
+gptpatient.com         "ec-256"   www.gptpatient.com         LetsEncrypt.org       2025-06-06T17:34:07Z  2025-08-04T17:34:07Z
+obgyn.gptpatient.com   "ec-256"   www.obgyn.gptpatient.com   LetsEncrypt.org       2025-06-07T06:27:18Z  2025-08-05T06:27:18Z
+thuvien.eagles.edu.vn  "ec-256"   www.thuvien.eagles.edu.vn  LetsEncrypt.org       2025-09-07T16:04:28Z  2025-11-05T16:04:28Z
+thuvien.eaglesvn.com   "ec-256"   www.thuvien.eaglesvn.com   LetsEncrypt.org       2025-09-07T21:25:50Z  2025-11-05T21:25:50Z
+You have mail in /var/mail/root
+root@cloud:/home/eagles/dockerz/renew_ssl#
+

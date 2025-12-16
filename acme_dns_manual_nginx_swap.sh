@@ -256,6 +256,12 @@ dig_txt_authoritative_verbose() {
   dig +time=2 +tries=1 +norecurse +noall +comments +answer TXT "$fqdn" @"$ip" 2>/dev/null || true
 }
 
+# Check that acme.sh produced usable cert/key artifacts (best-effort sanity gate).
+cert_files_present() {
+  local dir="$1"
+  [ -s "${dir}/fullchain.cer" ] && [ -s "${dir}/${DOMAIN}.key" ]
+}
+
 # Returns 0 if expected present (or any TXT present if expected empty), else 1.
 check_public_resolvers() {
   local fqdn="$1" expected="${2:-}"
@@ -477,7 +483,7 @@ main() {
   ECC_REMOVED="yes"
 
   # Issue (manual DNS) - capture output for TXT parsing
-  local issue_out
+  local issue_out issue_rc issue_needs_dns="no" cert_ready_after_issue="no"
   issue_out="$(mktemp)"
   info "stdout - run acme.sh --issue (manual DNS). This will print required TXT records."
   set +e
@@ -488,15 +494,24 @@ main() {
     --yes-I-know-dns-manual-mode-enough-go-ahead-please \
     --dnssleep 120 \
     --debug 2 2>&1 | tee "$issue_out"
-  local issue_rc="${PIPESTATUS[0]}"
+  issue_rc="${PIPESTATUS[0]}"
   set -e
   if [ "$issue_rc" -ne 0 ]; then
     if grep -qi "DNS record not yet added" "$issue_out" || grep -qi "Please add the TXT records" "$issue_out"; then
       warn "acme.sh --issue exited $issue_rc because TXT records are not yet added (manual DNS). Continuing to propagation checks with the printed tokens."
+      issue_needs_dns="yes"
     else
       err "acme.sh --issue failed (exit $issue_rc). Inspect output above and log: $LOG_FILE"
       err "Common fixes: wrong DNS provider zone, blocked outbound DNS, or acme.sh account/CA issues."
       rollback "acme.sh --issue failed"
+    fi
+  else
+    if cert_files_present "$ECC_DIR"; then
+      cert_ready_after_issue="yes"
+      info "Decision: acme.sh --issue already produced a certificate (TXT likely still present/valid)."
+    else
+      warn "acme.sh --issue exited 0 but no cert files were found in $ECC_DIR. Will continue with DNS checks and a renew attempt."
+      issue_needs_dns="yes"
     fi
   fi
 
@@ -522,7 +537,11 @@ main() {
     [ -n "$expected_www" ]  || die "Missing expected TXT for _acme-challenge.${WWW}. Cannot safely verify propagation."
   fi
 
-  pause_enter "Proceed with BOTH DNS TXT record additions now. When completed, press Enter here."
+  if [ "$cert_ready_after_issue" = "yes" ]; then
+    pause_enter "TXT records appear to be already present/valid; press Enter to continue to DNS verification."
+  else
+    pause_enter "Proceed with BOTH DNS TXT record additions now. When completed, press Enter here."
+  fi
 
   # Propagation loop
   while true; do
@@ -558,34 +577,57 @@ main() {
     esac
   done
 
-  echo
-  if ! ask_yes_no "Ready to run acme.sh --renew now (manual DNS, ECC) for '$DOMAIN' and '$WWW'?"; then
-    rollback "user declined renew step"
+  # Decide if renew is needed
+  local renew_needed="yes"
+  local renew_force_flag=""
+  if [ "$cert_ready_after_issue" = "yes" ]; then
+    renew_needed="no"
+    info "Decision: acme.sh already issued a cert during --issue. Skipping --renew to avoid a non-due skip."
+  else
+    renew_force_flag="--force"
   fi
 
-  # Renew
-  info "stdout - run acme.sh --renew (manual DNS, ECC)"
-  set +e
-  "$ACME" --renew \
-    -d "$DOMAIN" -d "$WWW" \
-    --ecc \
-    --dns \
-    --yes-I-know-dns-manual-mode-enough-go-ahead-please \
-    --debug 2
-  local renew_rc="$?"
-  set -e
-  if [ "$renew_rc" -ne 0 ]; then
-    err "acme.sh --renew failed (exit $renew_rc)."
-    err "Common causes: TXT mismatch, TXT not reachable by CA yet, multiple conflicting TXT records, or timing."
-    if ask_yes_no "Retry renew now?"; then
-      info "Retrying renew..."
-      run "$ACME" --renew -d "$DOMAIN" -d "$WWW" --ecc --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --debug 2
-    else
-      rollback "renew failed and user chose not to retry"
+  if [ "$renew_needed" = "yes" ]; then
+    echo
+    if ! ask_yes_no "Ready to run acme.sh --renew now (manual DNS, ECC) for '$DOMAIN' and '$WWW'?"; then
+      rollback "user declined renew step"
+    fi
+
+    # Renew (force when we haven't produced a cert yet)
+    local renew_out renew_rc
+    renew_out="$(mktemp)"
+    info "stdout - run acme.sh --renew (manual DNS, ECC)"
+    local renew_cmd=( "$ACME" --renew -d "$DOMAIN" -d "$WWW" --ecc --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --debug 2 )
+    [ -n "$renew_force_flag" ] && renew_cmd+=( "$renew_force_flag" )
+    set +e
+    "${renew_cmd[@]}" 2>&1 | tee "$renew_out"
+    renew_rc="${PIPESTATUS[0]}"
+    set -e
+
+    if [ "$renew_rc" -ne 0 ]; then
+      if grep -qi "Next renewal time is" "$renew_out"; then
+        warn "acme.sh --renew reported 'not due yet'. Treating as non-fatal if cert files exist."
+      else
+        err "acme.sh --renew failed (exit $renew_rc)."
+        err "Common causes: TXT mismatch, TXT not reachable by CA yet, multiple conflicting TXT records, or timing."
+        if ask_yes_no "Retry renew now?"; then
+          info "Retrying renew..."
+          run "${renew_cmd[@]}"
+        else
+          rollback "renew failed and user chose not to retry"
+        fi
+      fi
     fi
   fi
 
-  info "stdout - acme.sh --info and --list after renew"
+  # Ensure cert artifacts exist before proceeding
+  if cert_files_present "$ECC_DIR"; then
+    info "Cert/key artifacts present under $ECC_DIR. Proceeding to install."
+  else
+    rollback "expected certificate files missing after issue/renew"
+  fi
+
+  info "stdout - acme.sh --info and --list after issuance"
   run "$ACME" --info -d "$DOMAIN" --ecc
   run "$ACME" --info -d "$WWW"    --ecc
   run "$ACME" --list
@@ -669,8 +711,19 @@ main() {
     warn "OpenSSL verification failed. Nginx may not be listening on 443 locally, or firewall/port mapping differs. Validate externally with: openssl s_client -servername $DOMAIN -connect $DOMAIN:443"
   fi
 
+  # Offer to purge ECC backup to keep filesystem tidy
+  if [ -n "$ECC_BACKUP" ] && [ -d "$ECC_BACKUP" ]; then
+    echo
+    if ask_yes_no "Purge ECC backup directory now to save space? ($ECC_BACKUP)"; then
+      info "stdout - remove ECC backup at $ECC_BACKUP"
+      run rm -rf "$ECC_BACKUP"
+    else
+      info "Keeping ECC backup at $ECC_BACKUP"
+    fi
+  fi
+
   info "SUCCESS: Completed DNS-manual ECC issue/renew with staging nginx swap and restored production config."
-  info "Backup directories (if created) remain under /root/.acme.sh/${DOMAIN}_ecc.bak.*"
+  info "Backup directories (if kept) live under /root/.acme.sh/${DOMAIN}_ecc.bak.*"
   info "Log file: $LOG_FILE"
 }
 
