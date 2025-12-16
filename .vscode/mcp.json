@@ -1,0 +1,95 @@
+{
+  "servers": {
+    "io.github.github/github-mcp-server": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "${input:Authorization}"
+      },
+      "gallery": "https://api.mcp.github.com",
+      "version": "0.24.1"
+    },
+    "microsoft/playwright-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "gallery": "https://api.mcp.github.com",
+      "version": "0.0.1-seed"
+    },
+    "codacy/codacy-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@codacy/codacy-mcp@latest"],
+      "env": {
+        "CODACY_ACCOUNT_TOKEN": "${input:codacy_account_token}",
+        "CODACY_CLI_VERSION": "${input:codacy_cli_version}"
+      },
+      "gallery": "https://api.mcp.github.com",
+      "version": "1.0.0"
+    },
+    "io.github.upstash/context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@upstash/context7-mcp@1.0.31"],
+      "env": {
+        "CONTEXT7_API_KEY": "${input:CONTEXT7_API_KEY}"
+      },
+      "gallery": "https://api.mcp.github.com",
+      "version": "1.0.31"
+    },
+    "oraios/serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "serena==latest",
+        "--context",
+        "ide-assistant"
+      ],
+      "gallery": "https://api.mcp.github.com",
+      "version": "1.0.0"
+    },
+    "io.snyk/mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["snyk@1.1299.1", "mcp", "-t", "stdio"],
+      "gallery": "https://api.mcp.github.com",
+      "version": "1.1299.1"
+    },
+    "io.github.jfrog/jfrog-mcp-server": {
+      "type": "http",
+      "url": "https://myPlatform.jfrog.github.io/mcp",
+      "gallery": "https://api.mcp.github.com",
+      "version": "0.1.1"
+    }
+  },
+  "inputs": [
+    {
+      "id": "Authorization",
+      "type": "promptString",
+      "description": "Authentication token (PAT or App token)",
+      "password": true
+    },
+    {
+      "id": "codacy_account_token",
+      "type": "promptString",
+      "description": "Your Codacy Account API token (from app.codacy.com → Account). Required.",
+      "password": true
+    },
+    {
+      "id": "codacy_cli_version",
+      "type": "promptString",
+      "description": "Optional: pin Codacy CLI version used by local analysis (e.g., 2.3.1).",
+      "password": false
+    },
+    {
+      "id": "CONTEXT7_API_KEY",
+      "type": "promptString",
+      "description": "API key for authentication",
+      "password": true
+    }
+  ]
+}

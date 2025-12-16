@@ -1,0 +1,41 @@
+{
+  "name": "renew_ssl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automation and validation toolkit for manual DNS ACME renewals plus hardened Playwright checks.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "playwright test",
+    "test:debug": "PWDEBUG=1 playwright test --ui",
+    "test:report": "playwright show-report",
+    "pw:install": "playwright install chromium firefox webkit",
+    "check": "npm run lint && npm run format:check && npm run test"
+  },
+  "engines": {
+    "node": "20.19.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eagles-edu/renew_ssl.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/eagles-edu/renew_ssl/issues"
+  },
+  "homepage": "https://github.com/eagles-edu/renew_ssl#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@playwright/test": "^1.57.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.33.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4"
+  }
+}

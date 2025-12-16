@@ -1,0 +1,9 @@
+runtimes:
+  - node@20
+
+tools:
+  - eslint@9.33.0
+  - trivy
+
+tool_configurations:
+  trivy: .codacy/tools-configs/trivy.yaml
