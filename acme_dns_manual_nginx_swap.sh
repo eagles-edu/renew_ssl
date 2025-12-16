@@ -28,6 +28,9 @@ PROD_MOVED_PATH=""
 STAGE_LINK_PATH=""
 STAGE_CONF_PATH=""
 ROLLBACK_NEEDED="no"
+ECC_DIR=""
+ECC_BACKUP=""
+ECC_REMOVED="no"
 
 # ---------- Messaging helpers ----------
 ts() { date +"%F %T %z"; }
@@ -84,6 +87,13 @@ rollback() {
     if [ -n "$PROD_MOVED_PATH" ] && [ -e "$PROD_MOVED_PATH" ]; then
       info "Restoring production entry to: $PROD_ENABLED_PATH"
       mv -f "$PROD_MOVED_PATH" "$PROD_ENABLED_PATH"
+    fi
+
+    # Restore ECC backup if we removed the live dir earlier
+    if [ "$ECC_REMOVED" = "yes" ] && [ -n "$ECC_BACKUP" ] && [ -d "$ECC_BACKUP" ]; then
+      info "Restoring ECC backup from: $ECC_BACKUP -> $ECC_DIR"
+      rm -rf "$ECC_DIR"
+      cp -a "$ECC_BACKUP" "$ECC_DIR"
     fi
 
     # Validate & reload only if nginx exists
@@ -385,6 +395,7 @@ main() {
   read -r -p "INPUT: enter domain name (e.g., example.com): " DOMAIN_RAW || true
   DOMAIN="$(validate_domain "${DOMAIN_RAW:-}")"
   WWW="www.${DOMAIN}"
+  ECC_DIR="/root/.acme.sh/${DOMAIN}_ecc"
 
   LOG_FILE="${LOG_DIR}/acme-dns-manual-${DOMAIN}-$(date +%F-%H%M%S).log"
   # Start logging AFTER we know the domain for per-domain log filenames.
@@ -399,7 +410,9 @@ main() {
 
   info "stdout - acme.sh --info (best-effort; may be empty if not issued yet)"
   run "$ACME" --info -d "$DOMAIN" --ecc || warn "No existing ECC info for $DOMAIN (this is ok if you're re-issuing)."
-  run "$ACME" --info -d "$WWW"    --ecc || warn "No existing ECC info for $WWW (this is ok if you're re-issuing)."
+  if [ "$WWW" != "$DOMAIN" ]; then
+    info "SAN note: acme.sh stores the SAN entry for $WWW inside the same config dir as $DOMAIN (usually ${ECC_DIR}/${DOMAIN}.conf). A separate www.* conf directory is not created."
+  fi
 
   # Detect production enabled entry + staged SSL conf
   PROD_ENABLED_PATH="$(detect_prod_enabled_entry "$DOMAIN")"
@@ -439,18 +452,19 @@ main() {
   pause_enter "Prepare to add TWO DNS TXT records in your DNS provider when prompted by acme.sh. Ensure you can edit the zone now."
 
   # Backup ECC entry
-  local ecc_dir="/root/.acme.sh/${DOMAIN}_ecc"
-  if [ -d "$ecc_dir" ]; then
+  if [ -d "$ECC_DIR" ]; then
+    ECC_BACKUP="${ECC_DIR}.bak.$(date +%F-%H%M%S)"
     info "stdout - backup ECC cert entry"
-    run cp -a "$ecc_dir" "${ecc_dir}.bak.$(date +%F-%H%M%S)"
+    run cp -a "$ECC_DIR" "$ECC_BACKUP"
   else
-    warn "ECC directory not found at $ecc_dir. This is ok if you're issuing fresh; backup skipped."
+    warn "ECC directory not found at $ECC_DIR. This is ok if you're issuing fresh; backup skipped."
   fi
 
   # Remove ECC entry cleanly
   info "stdout - remove ECC cert entry cleanly (acme.sh --remove), then filesystem cleanup"
   run "$ACME" --remove -d "$DOMAIN" --ecc || warn "acme.sh --remove reported an issue (often ok if entry already absent)."
-  run rm -rf "$ecc_dir" || warn "Failed to remove $ecc_dir (permissions/lock). Remove manually if needed."
+  run rm -rf "$ECC_DIR" || warn "Failed to remove $ECC_DIR (permissions/lock). Remove manually if needed."
+  ECC_REMOVED="yes"
 
   # Issue (manual DNS) - capture output for TXT parsing
   local issue_out
@@ -467,9 +481,13 @@ main() {
   local issue_rc="${PIPESTATUS[0]}"
   set -e
   if [ "$issue_rc" -ne 0 ]; then
-    err "acme.sh --issue failed (exit $issue_rc). Inspect output above and log: $LOG_FILE"
-    err "Common fixes: wrong DNS provider zone, blocked outbound DNS, or acme.sh account/CA issues."
-    rollback "acme.sh --issue failed"
+    if grep -qi "DNS record not yet added" "$issue_out" || grep -qi "Please add the TXT records" "$issue_out"; then
+      warn "acme.sh --issue exited $issue_rc because TXT records are not yet added (manual DNS). Continuing to propagation checks with the printed tokens."
+    else
+      err "acme.sh --issue failed (exit $issue_rc). Inspect output above and log: $LOG_FILE"
+      err "Common fixes: wrong DNS provider zone, blocked outbound DNS, or acme.sh account/CA issues."
+      rollback "acme.sh --issue failed"
+    fi
   fi
 
   # Parse expected TXT values (best-effort)
