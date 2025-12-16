@@ -65,8 +65,20 @@ jobs:
           exit $EXIT_CODE
         continue-on-error: true
 
+      - name: Validate ESLint SARIF
+        id: validate_eslint
+        shell: bash
+        run: |
+          if [ -s eslint-results.sarif ] && \
+              jq -e '.runs | type=="array" and (length>0)' eslint-results.sarif >/dev/null; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
+        if: steps.validate_eslint.outputs.ok == 'true'
         with:
           sarif_file: eslint-results.sarif
           wait-for-processing: true
