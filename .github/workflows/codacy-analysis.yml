@@ -1,0 +1,110 @@
+name: Codacy Analysis (ESLint + Trivy)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: codacy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: write
+
+jobs:
+  codacy-analysis:
+    name: Codacy Analysis
+    runs-on: ubuntu-22.04
+    environment: renew_ssl
+    timeout-minutes: 30
+    env:
+      ESLINT_USE_FLAT_CONFIG: "true"
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node (from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # ── ESLint (native, flat, proud) → SARIF
+      - name: ESLint → SARIF
+        run: |
+          npx eslint . \
+            -f @microsoft/eslint-formatter-sarif \
+            -o results-eslint.sarif || true
+
+      - name: Validate ESLint SARIF
+        id: validate_eslint
+        shell: bash
+        run: |
+          if [ -s results-eslint.sarif ] && \
+              jq -e '.runs | type=="array" and (length>0)' results-eslint.sarif >/dev/null; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload ESLint SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: steps.validate_eslint.outputs.ok == 'true'
+        with:
+          sarif_file: results-eslint.sarif
+          wait-for-processing: true
+
+      # ── Trivy via Codacy CLI → SARIF
+      # Run only when token is available and the event is not a forked PR
+      - name: Codacy CLI (Trivy → SARIF)
+        id: codacy_trivy
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: codacy/codacy-analysis-cli-action@v4
+        with:
+          tool: trivy
+          directory: ${{ github.workspace }}  # absolute; DO NOT use "."
+          run-docker-tools: true
+          allow-network: true
+          format: sarif
+          output: results-trivy.sarif
+          gh-code-scanning-compat: true
+          project-token: ${{ env.CODACY_PROJECT_TOKEN }}
+          upload: ${{ env.CODACY_PROJECT_TOKEN != '' }}
+          fail-if-incomplete: false
+
+      - name: Flag Codacy upload issues
+        if: steps.codacy_trivy.outcome == 'failure'
+        run: |
+          echo "Codacy CLI reported a failure; continuing without Codacy upload." >&2
+
+      - name: Validate Trivy SARIF
+        id: validate_trivy
+        shell: bash
+        run: |
+          if [ -s results-trivy.sarif ] && \
+              jq -e '.runs | type=="array" and (length>0)' results-trivy.sarif >/dev/null; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Trivy SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: steps.validate_trivy.outputs.ok == 'true'
+        with:
+          sarif_file: results-trivy.sarif
+          wait-for-processing: true
