@@ -99,7 +99,11 @@ rollback() {
     # Validate & reload only if nginx exists
     if command -v nginx >/dev/null 2>&1; then
       info "Validating nginx config after rollback (nginx -t)..."
-      nginx -t && systemctl reload nginx || warn "Nginx reload failed after rollback. Run: nginx -t ; systemctl status nginx"
+      if nginx -t; then
+        systemctl reload nginx || warn "Nginx reload failed after rollback. Run: nginx -t ; systemctl status nginx"
+      else
+        warn "nginx -t failed after rollback. Run: nginx -t ; systemctl status nginx"
+      fi
     fi
   fi
 
@@ -268,7 +272,9 @@ check_public_resolvers() {
     fi
 
     info "Resolver @$r returned TXT:"
-    echo "$out" | sed 's/^/  - /'
+    while IFS= read -r line; do
+      printf '  - %s\n' "$line"
+    done <<<"$out"
 
     if [ -n "$expected" ]; then
       if echo "$out" | grep -Fq "$expected"; then
@@ -306,7 +312,9 @@ check_authoritative_ns() {
     return 1
   fi
   info "Authoritative NS for '$zone':"
-  echo "$ns_list" | sed 's/^/  - /'
+  while IFS= read -r line; do
+    printf '  - %s\n' "$line"
+  done <<<"$ns_list"
 
   while read -r ns; do
     [ -n "$ns" ] || continue
@@ -341,7 +349,9 @@ check_authoritative_ns() {
       fi
 
       info "Authoritative '$ns' ($ip) answers:"
-      echo "$answers" | sed 's/^/  /'
+      while IFS= read -r line; do
+        printf '  %s\n' "$line"
+      done <<<"$answers"
 
       if [ -n "$expected" ]; then
         if echo "$answers" | grep -Fq "\"$expected\"" || echo "$answers" | grep -Fq "$expected"; then

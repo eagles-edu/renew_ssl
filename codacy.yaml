@@ -7,3 +7,7 @@ tools:
 
 tool_configurations:
   trivy: .codacy/tools-configs/trivy.yaml
+
+# Ignore auto-generated lockfile from Lizard/complexity checks
+exclude_paths:
+  - package-lock.json
