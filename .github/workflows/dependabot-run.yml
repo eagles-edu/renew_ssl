@@ -2,6 +2,8 @@ name: Run Dependabot Manually
 
 on:
   workflow_dispatch: # Allows manual run from GitHub UI
+  schedule:
+    - cron: "0 6 * * 5" # Fridays at 06:00 UTC
 
 jobs:
   dependabot:
@@ -18,4 +20,5 @@ jobs:
         env:
           DEPENDABOT_DISABLE_CLEANUP: 1
           DEPENDABOT_ENABLE_CONNECTIVITY_CHECK: 0
-          GITHUB_TOKEN: ${{ secrets.CLASSIC_GITHUB_TOKEN }}
+          # Use custom secret name because "github" is reserved as a secret prefix in some envs; fallback to PAT secret, then default GitHub token.
+          GITHUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN || secrets.PERSONAL_ACCESS_TOKEN_GITHUB || github.token }}
