@@ -1,6 +1,6 @@
 {
   "name": "renew_ssl",
-  "version": "1.0.0",
+  "version": "0.0.02.x",
   "private": true,
   "description": "Automation and validation toolkit for manual DNS ACME renewals plus hardened Playwright checks.",
   "main": "index.js",
