@@ -35,6 +35,7 @@
     "NXDOMAIN",
     "ossl",
     "Precertificate",
+    "PWDEBUG",
     "SERVFAIL"
   ]
 }

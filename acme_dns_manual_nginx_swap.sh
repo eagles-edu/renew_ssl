@@ -17,7 +17,7 @@ LOCK_FILE="/run/lock/acme-dns-manual-nginx-swap.lock"
 LOG_DIR="/var/log"
 
 # Public resolvers for propagation checks
-PUBLIC_RESOLVERS=( "1.1.1.1" "8.8.8.8" "9.9.9.9" )
+PUBLIC_RESOLVERS=( ""8.8.8.8" 1.1.1.1" "9.9.9.9" )
 
 # ---------- State (used for rollback) ----------
 DOMAIN=""
@@ -283,7 +283,8 @@ check_public_resolvers() {
     done <<<"$out"
 
     if [ -n "$expected" ]; then
-      if echo "$out" | grep -Fq "$expected"; then
+      # Use -- to avoid treating leading '-' in tokens as options.
+      if echo "$out" | grep -Fq -- "$expected"; then
         info "Resolver @$r: MATCH (expected token present)."
         ok_any="yes"
       else
@@ -360,7 +361,7 @@ check_authoritative_ns() {
       done <<<"$answers"
 
       if [ -n "$expected" ]; then
-        if echo "$answers" | grep -Fq "\"$expected\"" || echo "$answers" | grep -Fq "$expected"; then
+        if echo "$answers" | grep -Fq -- "\"$expected\"" || echo "$answers" | grep -Fq -- "$expected"; then
           info "Authoritative '$ns' ($ip): MATCH (expected token present)."
           ok_any="yes"
         else
